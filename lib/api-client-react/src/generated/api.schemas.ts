@@ -8,3 +8,84 @@
 export interface HealthStatus {
   status: string;
 }
+
+/**
+ * Programming language of the snippet
+ */
+export type GenerateDocumentationBodyLanguage =
+  (typeof GenerateDocumentationBodyLanguage)[keyof typeof GenerateDocumentationBodyLanguage];
+
+export const GenerateDocumentationBodyLanguage = {
+  python: "python",
+  java: "java",
+  cpp: "cpp",
+} as const;
+
+/**
+ * Type of documentation to generate
+ */
+export type GenerateDocumentationBodyMode =
+  (typeof GenerateDocumentationBodyMode)[keyof typeof GenerateDocumentationBodyMode];
+
+export const GenerateDocumentationBodyMode = {
+  comments: "comments",
+  docstrings: "docstrings",
+  readme: "readme",
+  bugs: "bugs",
+} as const;
+
+export interface GenerateDocumentationBody {
+  /** The code snippet to document */
+  code: string;
+  /** Programming language of the snippet */
+  language: GenerateDocumentationBodyLanguage;
+  /** Type of documentation to generate */
+  mode: GenerateDocumentationBodyMode;
+}
+
+export interface GenerateDocumentationResponse {
+  id: number;
+  /** The generated documentation or annotated code */
+  output: string;
+  language: string;
+  mode: string;
+  inputCode: string;
+  createdAt: string;
+}
+
+export interface HistoryItem {
+  id: number;
+  output: string;
+  language: string;
+  mode: string;
+  inputCode: string;
+  createdAt: string;
+}
+
+export type StatsResponseByLanguage = {
+  python: number;
+  java: number;
+  cpp: number;
+};
+
+export type StatsResponseByMode = {
+  comments: number;
+  docstrings: number;
+  readme: number;
+  bugs: number;
+};
+
+export interface StatsResponse {
+  totalGenerations: number;
+  byLanguage: StatsResponseByLanguage;
+  byMode: StatsResponseByMode;
+  recentActivity: HistoryItem[];
+}
+
+export interface SuccessResponse {
+  success: boolean;
+}
+
+export interface ErrorResponse {
+  error: string;
+}

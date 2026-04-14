@@ -14,3 +14,98 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Generates comments, docstrings, README, or bug detection for a code snippet
+ * @summary Generate documentation for code
+ */
+export const GenerateDocumentationBody = zod.object({
+  code: zod.string().describe("The code snippet to document"),
+  language: zod
+    .enum(["python", "java", "cpp"])
+    .describe("Programming language of the snippet"),
+  mode: zod
+    .enum(["comments", "docstrings", "readme", "bugs"])
+    .describe("Type of documentation to generate"),
+});
+
+export const GenerateDocumentationResponse = zod.object({
+  id: zod.number(),
+  output: zod
+    .string()
+    .describe("The generated documentation or annotated code"),
+  language: zod.string(),
+  mode: zod.string(),
+  inputCode: zod.string(),
+  createdAt: zod.string(),
+});
+
+/**
+ * Returns recent code generation history
+ * @summary Get generation history
+ */
+export const GetHistoryResponseItem = zod.object({
+  id: zod.number(),
+  output: zod.string(),
+  language: zod.string(),
+  mode: zod.string(),
+  inputCode: zod.string(),
+  createdAt: zod.string(),
+});
+export const GetHistoryResponse = zod.array(GetHistoryResponseItem);
+
+/**
+ * @summary Get a specific history item
+ */
+export const GetHistoryItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetHistoryItemResponse = zod.object({
+  id: zod.number(),
+  output: zod.string(),
+  language: zod.string(),
+  mode: zod.string(),
+  inputCode: zod.string(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Delete a history item
+ */
+export const DeleteHistoryItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteHistoryItemResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * Returns aggregate stats about code generation usage
+ * @summary Get usage statistics
+ */
+export const GetStatsResponse = zod.object({
+  totalGenerations: zod.number(),
+  byLanguage: zod.object({
+    python: zod.number(),
+    java: zod.number(),
+    cpp: zod.number(),
+  }),
+  byMode: zod.object({
+    comments: zod.number(),
+    docstrings: zod.number(),
+    readme: zod.number(),
+    bugs: zod.number(),
+  }),
+  recentActivity: zod.array(
+    zod.object({
+      id: zod.number(),
+      output: zod.string(),
+      language: zod.string(),
+      mode: zod.string(),
+      inputCode: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});

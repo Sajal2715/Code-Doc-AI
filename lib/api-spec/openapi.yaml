@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: codegen
+    description: AI code comment generation and documentation
 paths:
   /healthz:
     get:
@@ -24,6 +26,106 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /codegen/generate:
+    post:
+      operationId: generateDocumentation
+      tags: [codegen]
+      summary: Generate documentation for code
+      description: Generates comments, docstrings, README, or bug detection for a code snippet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateDocumentationBody"
+      responses:
+        "200":
+          description: Generated documentation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateDocumentationResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /codegen/history:
+    get:
+      operationId: getHistory
+      tags: [codegen]
+      summary: Get generation history
+      description: Returns recent code generation history
+      responses:
+        "200":
+          description: History list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HistoryItem"
+  /codegen/history/{id}:
+    get:
+      operationId: getHistoryItem
+      tags: [codegen]
+      summary: Get a specific history item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: History item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryItem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteHistoryItem
+      tags: [codegen]
+      summary: Delete a history item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /codegen/stats:
+    get:
+      operationId: getStats
+      tags: [codegen]
+      summary: Get usage statistics
+      description: Returns aggregate stats about code generation usage
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +135,123 @@ components:
           type: string
       required:
         - status
-
+    GenerateDocumentationBody:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The code snippet to document
+        language:
+          type: string
+          enum: [python, java, cpp]
+          description: Programming language of the snippet
+        mode:
+          type: string
+          enum: [comments, docstrings, readme, bugs]
+          description: Type of documentation to generate
+      required:
+        - code
+        - language
+        - mode
+    GenerateDocumentationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        output:
+          type: string
+          description: The generated documentation or annotated code
+        language:
+          type: string
+        mode:
+          type: string
+        inputCode:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - output
+        - language
+        - mode
+        - inputCode
+        - createdAt
+    HistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        output:
+          type: string
+        language:
+          type: string
+        mode:
+          type: string
+        inputCode:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - output
+        - language
+        - mode
+        - inputCode
+        - createdAt
+    StatsResponse:
+      type: object
+      properties:
+        totalGenerations:
+          type: integer
+        byLanguage:
+          type: object
+          properties:
+            python:
+              type: integer
+            java:
+              type: integer
+            cpp:
+              type: integer
+          required:
+            - python
+            - java
+            - cpp
+        byMode:
+          type: object
+          properties:
+            comments:
+              type: integer
+            docstrings:
+              type: integer
+            readme:
+              type: integer
+            bugs:
+              type: integer
+          required:
+            - comments
+            - docstrings
+            - readme
+            - bugs
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryItem"
+      required:
+        - totalGenerations
+        - byLanguage
+        - byMode
+        - recentActivity
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

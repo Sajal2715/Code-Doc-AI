@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "AI Code Comment Generator"
+version = "1.0.0"
+id = "artifacts/code-commenter"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24143
+
+[services.development]
+run = "pnpm --filter @workspace/code-commenter run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/code-commenter", "run", "build" ]
+publicDir = "artifacts/code-commenter/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24143"
+BASE_PATH = "/"

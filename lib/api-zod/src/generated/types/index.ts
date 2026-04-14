@@ -6,4 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./errorResponse";
+export * from "./generateDocumentationBody";
+export * from "./generateDocumentationBodyLanguage";
+export * from "./generateDocumentationBodyMode";
+export * from "./generateDocumentationResponse";
 export * from "./healthStatus";
+export * from "./historyItem";
+export * from "./statsResponse";
+export * from "./statsResponseByLanguage";
+export * from "./statsResponseByMode";
+export * from "./successResponse";

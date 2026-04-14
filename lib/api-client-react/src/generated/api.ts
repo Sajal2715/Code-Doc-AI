@@ -5,18 +5,29 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ErrorResponse,
+  GenerateDocumentationBody,
+  GenerateDocumentationResponse,
+  HealthStatus,
+  HistoryItem,
+  StatsResponse,
+  SuccessResponse,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +103,412 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Generates comments, docstrings, README, or bug detection for a code snippet
+ * @summary Generate documentation for code
+ */
+export const getGenerateDocumentationUrl = () => {
+  return `/api/codegen/generate`;
+};
+
+export const generateDocumentation = async (
+  generateDocumentationBody: GenerateDocumentationBody,
+  options?: RequestInit,
+): Promise<GenerateDocumentationResponse> => {
+  return customFetch<GenerateDocumentationResponse>(
+    getGenerateDocumentationUrl(),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(generateDocumentationBody),
+    },
+  );
+};
+
+export const getGenerateDocumentationMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateDocumentation>>,
+    TError,
+    { data: BodyType<GenerateDocumentationBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateDocumentation>>,
+  TError,
+  { data: BodyType<GenerateDocumentationBody> },
+  TContext
+> => {
+  const mutationKey = ["generateDocumentation"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateDocumentation>>,
+    { data: BodyType<GenerateDocumentationBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateDocumentation(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateDocumentationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateDocumentation>>
+>;
+export type GenerateDocumentationMutationBody =
+  BodyType<GenerateDocumentationBody>;
+export type GenerateDocumentationMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Generate documentation for code
+ */
+export const useGenerateDocumentation = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateDocumentation>>,
+    TError,
+    { data: BodyType<GenerateDocumentationBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateDocumentation>>,
+  TError,
+  { data: BodyType<GenerateDocumentationBody> },
+  TContext
+> => {
+  return useMutation(getGenerateDocumentationMutationOptions(options));
+};
+
+/**
+ * Returns recent code generation history
+ * @summary Get generation history
+ */
+export const getGetHistoryUrl = () => {
+  return `/api/codegen/history`;
+};
+
+export const getHistory = async (
+  options?: RequestInit,
+): Promise<HistoryItem[]> => {
+  return customFetch<HistoryItem[]>(getGetHistoryUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetHistoryQueryKey = () => {
+  return [`/api/codegen/history`] as const;
+};
+
+export const getGetHistoryQueryOptions = <
+  TData = Awaited<ReturnType<typeof getHistory>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getHistory>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetHistoryQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getHistory>>> = ({
+    signal,
+  }) => getHistory({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getHistory>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetHistoryQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getHistory>>
+>;
+export type GetHistoryQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get generation history
+ */
+
+export function useGetHistory<
+  TData = Awaited<ReturnType<typeof getHistory>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getHistory>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetHistoryQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a specific history item
+ */
+export const getGetHistoryItemUrl = (id: number) => {
+  return `/api/codegen/history/${id}`;
+};
+
+export const getHistoryItem = async (
+  id: number,
+  options?: RequestInit,
+): Promise<HistoryItem> => {
+  return customFetch<HistoryItem>(getGetHistoryItemUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetHistoryItemQueryKey = (id: number) => {
+  return [`/api/codegen/history/${id}`] as const;
+};
+
+export const getGetHistoryItemQueryOptions = <
+  TData = Awaited<ReturnType<typeof getHistoryItem>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getHistoryItem>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetHistoryItemQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getHistoryItem>>> = ({
+    signal,
+  }) => getHistoryItem(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getHistoryItem>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetHistoryItemQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getHistoryItem>>
+>;
+export type GetHistoryItemQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get a specific history item
+ */
+
+export function useGetHistoryItem<
+  TData = Awaited<ReturnType<typeof getHistoryItem>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getHistoryItem>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetHistoryItemQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Delete a history item
+ */
+export const getDeleteHistoryItemUrl = (id: number) => {
+  return `/api/codegen/history/${id}`;
+};
+
+export const deleteHistoryItem = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(getDeleteHistoryItemUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteHistoryItemMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteHistoryItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteHistoryItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteHistoryItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteHistoryItem>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteHistoryItem(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteHistoryItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteHistoryItem>>
+>;
+
+export type DeleteHistoryItemMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a history item
+ */
+export const useDeleteHistoryItem = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteHistoryItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteHistoryItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteHistoryItemMutationOptions(options));
+};
+
+/**
+ * Returns aggregate stats about code generation usage
+ * @summary Get usage statistics
+ */
+export const getGetStatsUrl = () => {
+  return `/api/codegen/stats`;
+};
+
+export const getStats = async (
+  options?: RequestInit,
+): Promise<StatsResponse> => {
+  return customFetch<StatsResponse>(getGetStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetStatsQueryKey = () => {
+  return [`/api/codegen/stats`] as const;
+};
+
+export const getGetStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getStats>>> = ({
+    signal,
+  }) => getStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStats>>
+>;
+export type GetStatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get usage statistics
+ */
+
+export function useGetStats<
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStatsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
