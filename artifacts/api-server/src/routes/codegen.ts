@@ -86,7 +86,7 @@ router.post("/codegen/generate", async (req, res) => {
     const prompt = buildPrompt(code, language, mode);
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.3-codex",
+      model: "gpt-5.2",
       max_completion_tokens: 8192,
       messages: [{ role: "user", content: prompt }],
     });
